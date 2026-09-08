@@ -1,0 +1,35 @@
+\begin{table}
+\centering
+\begin{tabular}[t]{lcccccc}
+\toprule
+  & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel A: Wins and Losses Combined}}\\
+\midrule \hspace{1em}Inaccuracy & 0.007 & 0.006 & 0.002 & 0.002 & 0.002 & 0.001\\
+\hspace{1em} & (0.011) & (0.010) & (0.003) & (0.003) & (0.001) & (0.001)\\
+\hspace{1em}N & 12296 & 12296 & 12296 & 12296 & 12296 & 12295\\
+\hspace{1em}AIC & 62362 & 62059 & 52558 & 52325 & 50372 & 50404\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel B: Losses}}\\
+\midrule \hspace{1em}Inaccuracy & 0.009 & 0.008 & 0.004* & 0.004** & 0.004*** & 0.003***\\
+\hspace{1em} & (0.011) & (0.010) & (0.002) & (0.002) & (0.001) & (0.001)\\
+\hspace{1em}N & 6284 & 6284 & 6284 & 6284 & 6284 & 6282\\
+\hspace{1em}AIC & 31527 & 31423 & 26677 & 26572 & 25622 & 25694\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel C: Wins}}\\
+\midrule \hspace{1em}Inaccuracy & 0.004 & 0.003 & 0.001 & 0.001 & -0.000 & 0.000\\
+\hspace{1em} & (0.011) & (0.010) & (0.003) & (0.003) & (0.002) & (0.002)\\
+\hspace{1em}N & 6012 & 6012 & 6012 & 6012 & 6012 & 6012\\
+\hspace{1em}AIC & 30810 & 30599 & 25903 & 25784 & 24850 & 24907\\
+Controls & No & Yes & No & Yes & Yes & Yes\\
+Day-of-Week Fixed Effects & No & No & Yes & Yes & Yes & —\\
+City Fixed Effects & No & No & Yes & Yes & — & —\\
+Year Fixed Effects & No & No & Yes & Yes & — & —\\
+Month Fixed Effects & No & No & Yes & Yes & Yes & —\\
+City-by-Year Fixed Effects & No & No & No & No & Yes & Yes\\
+City-by-Month Fixed Effects & No & No & No & No & No & Yes\\
+City-by-Day-of-Week Fixed Effects & No & No & No & No & No & Yes\\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,40 @@
+\begin{table}
+\centering
+\begin{tabular}[t]{lcccccc}
+\toprule
+  & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel A: home games}}\\
+\midrule \hspace{1em}top25inaccurate × lose × disfavored & 0.060 & 0.055 & 0.098 & 0.097 & 0.104* & 0.100\\
+\hspace{1em} & (0.076) & (0.084) & (0.067) & (0.076) & (0.063) & (0.070)\\
+\hspace{1em}N & 6136 & 6136 & 6136 & 6136 & 6136 & 6134\\
+\hspace{1em}AIC & 31069 & 30792 & 26259 & 26089 & 25065 & 25121\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel B: away games}}\\
+\midrule \hspace{1em}top25inaccurate × lose × disfavored & -0.033 & -0.044 & 0.038 & 0.030 & 0.034 & 0.040\\
+\hspace{1em} & (0.057) & (0.066) & (0.056) & (0.058) & (0.052) & (0.053)\\
+\hspace{1em}N & 6160 & 6160 & 6160 & 6160 & 6160 & 6157\\
+\hspace{1em}AIC & 31280 & 31091 & 26335 & 26191 & 25387 & 25449\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel C: AIR QUALITY GOOD OR MODERATE}}\\
+\midrule \hspace{1em}top25inaccurate × lose × disfavored & 0.040 & 0.036 & 0.092** & 0.090** & 0.087** & 0.089**\\
+\hspace{1em} & (0.052) & (0.059) & (0.038) & (0.040) & (0.034) & (0.035)\\
+\hspace{1em}N & 11778 & 11778 & 11778 & 11778 & 11778 & 11777\\
+\hspace{1em}AIC & 59404 & 59148 & 50208 & 49996 & 48159 & 48198\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel D: Temperature NORMAL}}\\
+\midrule \hspace{1em}top25inaccurate × lose × disfavored & 0.010 & 0.003 & 0.082** & 0.084** & 0.085*** & 0.090***\\
+\hspace{1em} & (0.051) & (0.060) & (0.035) & (0.038) & (0.033) & (0.033)\\
+\hspace{1em}N & 10925 & 10925 & 10925 & 10925 & 10925 & 10924\\
+\hspace{1em}AIC & 55452 & 55190 & 46673 & 46495 & 44725 & 44753\\
+Controls & No & Yes & No & Yes & Yes & Yes\\
+Day-of-Week Fixed Effects & No & No & Yes & Yes & Yes & Yes\\
+City Fixed Effects & No & No & Yes & Yes & — & —\\
+Year Fixed Effects & No & No & Yes & Yes & — & —\\
+Month Fixed Effects & No & No & Yes & Yes & Yes & —\\
+City-by-Year Fixed Effects & No & No & No & No & Yes & —\\
+City-by-Year-by-Month Fixed Effects & No & No & No & No & No & Yes\\
+\bottomrule
+\end{tabular}
+\end{table}

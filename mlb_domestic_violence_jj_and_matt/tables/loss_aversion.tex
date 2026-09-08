@@ -1,0 +1,32 @@
+\begin{table}
+\centering
+\caption{loss aversion}
+\centering
+\begin{tabular}[t]{lcccccc}
+\toprule
+  & Favored & Favored  & Favored   & Not Favored & Not Favored  & Not Favored  \\
+\midrule
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel A: Losses}}\\
+\midrule \hspace{1em}inaccuracy & 0.003 & 0.002 & 0.001 & 0.013 & 0.007* & 0.007***\\
+\hspace{1em} & (0.010) & (0.002) & (0.003) & (0.010) & (0.003) & (0.002)\\
+\hspace{1em}N & 3063 & 3063 & 3063 & 3221 & 3221 & 3221\\
+\hspace{1em}R<sup>2</sup> & 0.00 & 0.16 &  & 0.01 & 0.16 & \\
+\hspace{1em}AIC & 15265 & 12921 & 12467 & 16159 & 13669 & 13217\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel B: Wins}}\\
+\midrule \hspace{1em}inaccuracy & -0.004 & -0.000 & -0.001 & 0.011 & 0.002 & -0.001\\
+\hspace{1em} & (0.009) & (0.004) & (0.002) & (0.012) & (0.004) & (0.003)\\
+\hspace{1em}N & 3066 & 3066 & 3066 & 2946 & 2946 & 2946\\
+\hspace{1em}R<sup>2</sup> & 0.01 & 0.16 &  & 0.01 & 0.18 & \\
+\hspace{1em}AIC & 15462 & 13128 & 12636 & 15121 & 12657 & 12253\\
+Controls & Yes & Yes & Yes & Yes & Yes & Yes\\
+Day-of-Week Fixed Effects & No & Yes & Yes & No & Yes & Yes\\
+Month Fixed Effects & No & Yes & Yes & No & Yes & Yes\\
+City Fixed Effects & No & Yes & — & No & Yes & —\\
+Year Fixed Effects & No & Yes & — & No & Yes & —\\
+City-by-Year Fixed Effects & No & No & Yes & No & No & Yes\\
+\bottomrule
+\multicolumn{7}{l}{\rule{0pt}{1em}* p $<$ 0.1, ** p $<$ 0.05, *** p $<$ 0.01}\\
+\end{tabular}
+\end{table}

@@ -1,0 +1,42 @@
+\begin{table}
+\centering
+\caption{Effects In Higher Stakes Games}
+\centering
+\begin{tabular}[t]{lcccccc}
+\toprule
+  & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel A: Regular Season Losses}}\\
+\midrule \hspace{1em}Inaccuracy & 0.009 & 0.008 & 0.004*** & 0.004** & 0.004*** & 0.003***\\
+\hspace{1em} & (0.010) & (0.010) & (0.001) & (0.002) & (0.001) & (0.001)\\
+\hspace{1em}N & 6216 & 6216 & 6216 & 6216 & 6216 & 6214\\
+\hspace{1em}AIC & 31181 & 31076 & 25422 & 26286 & 25351 & 25421\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel B: Post Season Losses}}\\
+\midrule \hspace{1em}Inaccuracy & -0.014 & -0.010 & -0.017 & -0.037* & -0.033** & 0.009\\
+\hspace{1em} & (0.042) & (0.036) & (0.019) & (0.021) & (0.016) & (0.008)\\
+\hspace{1em}N & 68 & 68 & 64 & 68 & 64 & 35\\
+\hspace{1em}AIC & 341 & 353 & 289 & 308 & 294 & 200\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel C: Close Games Losses}}\\
+\midrule \hspace{1em}Inaccuracy & 0.005 & 0.003 & -0.001 & -0.001 & -0.002 & -0.004\\
+\hspace{1em} & (0.011) & (0.009) & (0.002) & (0.002) & (0.002) & (0.003)\\
+\hspace{1em}N & 1763 & 1763 & 1763 & 1763 & 1763 & 1750\\
+\hspace{1em}AIC & 8828 & 8795 & 7194 & 7387 & 7190 & 7244\\
+\addlinespace[0.5em]
+\multicolumn{7}{l}{\textit{Panel D: Close Records Losses}}\\
+\midrule \hspace{1em}Inaccuracy & 0.004 & 0.004 & 0.007** & 0.006** & 0.008*** & 0.008***\\
+\hspace{1em} & (0.013) & (0.012) & (0.003) & (0.003) & (0.003) & (0.003)\\
+\hspace{1em}N & 2002 & 2002 & 2002 & 2002 & 2002 & 1992\\
+\hspace{1em}AIC & 10440 & 10332 & 8364 & 8605 & 8341 & 8387\\
+Controls & No & Yes & No & Yes & Yes & Yes\\
+Day-of-Week Fixed Effects & No & No & Yes & Yes & Yes & Yes\\
+City Fixed Effects & No & No & Yes & Yes & — & —\\
+Year Fixed Effects & No & No & Yes & Yes & — & —\\
+Month Fixed Effects & No & No & Yes & Yes & Yes & —\\
+City-by-Year Fixed Effects & No & No & No & No & Yes & —\\
+City-by-Year-by-Month Fixed Effects & No & No & No & No & No & Yes\\
+\bottomrule
+\end{tabular}
+\end{table}

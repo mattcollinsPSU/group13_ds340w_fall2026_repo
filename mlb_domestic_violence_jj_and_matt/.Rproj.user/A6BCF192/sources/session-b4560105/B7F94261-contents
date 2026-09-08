@@ -1,0 +1,24 @@
+\begin{table}
+\centering
+\caption{Effects of Umpire Accuracy on Domestic Violence At Different Times}
+\centering
+\begin{tabular}[t]{lccccccc}
+\toprule
+  & (1) & (2) & (3) & (4) & (5) & (6) & (7)\\
+\midrule
+\addlinespace[0.5em]
+\multicolumn{8}{l}{\textit{Panel A: Effects Across Days}}\\
+\midrule \hspace{1em}inaccuracy & -0.006 & -0.000 & -0.005 & 0.020*** & 0.005 & 0.010** & -0.008\\
+\hspace{1em} & (0.007) & (0.007) & (0.009) & (0.007) & (0.005) & (0.004) & (0.006)\\
+\hspace{1em}N & 693 & 962 & 950 & 633 & 979 & 987 & 1022\\
+\hspace{1em}AIC & 2889 & 3947 & 3826 & 2676 & 4270 & 4357 & 4306\\
+\addlinespace[0.5em]
+\multicolumn{8}{l}{\textit{Panel B: Effects Across Months}}\\
+\midrule \hspace{1em}inaccuracy & -0.002 & 0.002 & 0.000 & 0.007 & 0.002 & 0.010* & 0.014\\
+\hspace{1em} & (0.003) & (0.007) & (0.006) & (0.005) & (0.006) & (0.005) & (0.017)\\
+\hspace{1em}N & 924 & 1066 & 1037 & 1002 & 1067 & 1006 & 101\\
+\hspace{1em}AIC & 3854 & 4476 & 4412 & 4206 & 4372 & 4161 & 485\\
+\bottomrule
+\multicolumn{8}{l}{\rule{0pt}{1em}* p $<$ 0.1, ** p $<$ 0.05, *** p $<$ 0.01}\\
+\end{tabular}
+\end{table}

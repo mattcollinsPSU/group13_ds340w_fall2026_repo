@@ -1,0 +1,20 @@
+\begin{table}
+\centering
+\caption{DV By Team}
+\centering
+\begin{tabular}[t]{lrrrrr}
+\toprule
+team & mean & sd & median & min & max\\
+\midrule
+CIN & \num{2.30} & \num{1.98} & \num{2.00} & \num{0.00} & \num{13.00}\\
+CLE & \num{5.65} & \num{2.69} & \num{5.00} & \num{0.00} & \num{17.00}\\
+COL & \num{2.30} & \num{1.81} & \num{2.00} & \num{0.00} & \num{12.00}\\
+DET & \num{6.49} & \num{2.96} & \num{6.00} & \num{0.00} & \num{21.00}\\
+KC & \num{4.06} & \num{2.16} & \num{4.00} & \num{0.00} & \num{13.00}\\
+MIL & \num{4.38} & \num{2.97} & \num{4.00} & \num{0.00} & \num{19.00}\\
+MIN & \num{2.28} & \num{1.65} & \num{2.00} & \num{0.00} & \num{8.00}\\
+SEA & \num{1.87} & \num{1.45} & \num{2.00} & \num{0.00} & \num{9.00}\\
+TEX & \num{2.00} & \num{1.52} & \num{2.00} & \num{0.00} & \num{10.00}\\
+\bottomrule
+\end{tabular}
+\end{table}

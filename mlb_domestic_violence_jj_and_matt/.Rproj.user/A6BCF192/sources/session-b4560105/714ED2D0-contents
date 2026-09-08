@@ -1,0 +1,22 @@
+\begin{table}
+\centering
+\caption{Interaction model base}
+\centering
+\begin{tabular}[t]{lcccccc}
+\toprule
+  & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+inaccuracy & \num{0.004} & \num{0.003} & \num{0.001} & \num{0.001} & \num{0.001} & \num{0.001}\\
+ & (\num{0.011}) & (\num{0.010}) & (\num{0.002}) & (\num{0.002}) & (\num{0.001}) & (\num{0.001})\\
+lose & \num{-0.096}** & \num{-0.102}*** & \num{-0.071}** & \num{-0.073}** & \num{-0.026}* & \num{-0.022}\\
+ & (\num{0.038}) & (\num{0.035}) & (\num{0.032}) & (\num{0.034}) & (\num{0.014}) & (\num{0.015})\\
+inaccuracy × lose & \num{0.005} & \num{0.005} & \num{0.004}* & \num{0.003}* & \num{0.001} & \num{0.001}\\
+ & (\num{0.004}) & (\num{0.004}) & (\num{0.002}) & (\num{0.002}) & (\num{0.001}) & (\num{0.001})\\
+\midrule
+N & \num{12296} & \num{12296} & \num{12296} & \num{12296} & \num{12296} & \num{12273}\\
+R<sup>2</sup> & \num{0.00} & \num{0.01} & \num{0.16} & \num{0.16} &  & \\
+AIC & \num{62337} & \num{62028} & \num{52548} & \num{52311} & \num{50374} & \num{50460}\\
+\bottomrule
+\multicolumn{7}{l}{\rule{0pt}{1em}* p $<$ 0.1, ** p $<$ 0.05, *** p $<$ 0.01}\\
+\end{tabular}
+\end{table}

@@ -1,0 +1,220 @@
+
+# Script Information
+# ------------------------------------------------------------------------------
+# This script file was written by Kalvin Mudrow
+
+
+# Load Libraries
+# ------------------------------------------------------------------------------
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(stringr)
+
+
+# Import Processed Data
+# ------------------------------------------------------------------------------
+master_ipv <- readRDS("data/processed/master_ipv_incidents_1999_2023.rds")
+nfl_panel  <- readRDS("data/processed/nfl_game_panel_1999_2024.rds")
+
+
+# Identify single-team states and filter ALL data at the beginning
+# ------------------------------------------------------------------------------
+# Count the number of unique teams operating in each state
+teams_per_state <- nfl_panel %>%
+  group_by(state_abb) %>%
+  summarise(n_teams = n_distinct(team))
+
+# Identify states with only one team
+single_team_states <- teams_per_state %>%
+  filter(n_teams == 1, state_abb != "ny") %>%
+  pull(state_abb)
+
+# Filter the NFL panel to keep only home games from single-team states
+nfl_panel <- nfl_panel %>%
+  filter(state_abb %in% single_team_states)
+
+# Prepare and filter the master IPV data
+master_ipv <- master_ipv %>%
+  mutate(incident_date = as.Date(incident_date)) %>%
+  filter(incident_date >= as.Date("2005-09-01") & incident_date <= as.Date("2020-1-31")) %>%
+  filter(
+    state_abb %in% single_team_states,
+    location_type == "residence/home"
+  ) %>%
+  # Filter for incidents occurring in the afternoon and evening.
+  mutate(
+    incident_hour = as.numeric(str_extract(incident_date_hour, "\\d{2}"))
+  ) %>%
+  filter(incident_hour >= 13 & incident_hour <= 23)
+
+
+# Create agency-by-day panel of IPV incidents
+# ------------------------------------------------------------------------------
+ipv_counts <- master_ipv %>%
+  group_by(ori, incident_date, state, state_abb, city_name) %>%
+  summarise(
+    # Original IPV counts
+    overall_ipv = n(),
+    m_on_f_ipv = sum(sex_of_offender == 'male' & sex_of_victim == 'female', na.rm = TRUE),
+    f_on_m_ipv = sum(sex_of_offender == 'female' & sex_of_victim == 'male', na.rm = TRUE),
+
+    .groups = 'drop'
+  )
+
+# Build the complete agency-by-day panel (fill in 0s for missing panel days)
+agency_day_panel <- ipv_counts %>%
+  group_by(ori, state, state_abb, city_name) %>%
+  complete(
+    incident_date = seq.Date(min(incident_date), max(incident_date), by = "day"),
+    fill = list(
+      overall_ipv = 0,
+      m_on_f_ipv = 0,
+      f_on_m_ipv = 0
+    )
+  ) %>%
+  ungroup()
+
+
+# Create final panel and apply panel-level filters
+# ------------------------------------------------------------------------------
+# Define specific list of holiday dates in our sample
+holiday_dates_in_sample <- as.Date(c(
+  "1999-07-04", 
+  "2001-11-11", 
+  "2004-07-04", 
+  "2005-12-25",
+  "2006-01-01", 
+  "2007-11-11",
+  "2010-07-04", 
+  "2011-12-25", 
+  "2012-01-01", 
+  "2012-11-11", 
+  "2016-12-25",
+  "2017-01-01",
+  "2018-11-11", 
+  "2021-07-04", 
+  "2022-06-19", 
+  "2022-12-25", 
+  "2023-01-01"  
+))
+
+# Create the final panel with the new holiday indicator
+final_ipv_panel <- agency_day_panel %>%
+  mutate(
+    year = year(incident_date),
+    holiday = if_else(incident_date %in% holiday_dates_in_sample, 1, 0)
+  )
+
+# Identify agencies with at least 4 consecutive years of reporting at least one IPV incident.
+agencies_to_keep <- final_ipv_panel %>%
+  # Get annual IPV counts for each agency
+  group_by(ori, year) %>%
+  summarise(total_ipv = sum(overall_ipv), .groups = "drop") %>%
+  # Keep only years where the agency was "active" (reported > 0 incidents)
+  filter(total_ipv > 0) %>%
+  # For each agency, check if a 4-year consecutive streak exists
+  group_by(ori) %>%
+  summarise(
+    has_4_consecutive = any((year + 1) %in% year & (year + 2) %in% year & (year + 3) %in% year),
+    .groups = "drop"
+  ) %>%
+  # Filter for the agencies that meet the condition and get their IDs
+  filter(has_4_consecutive) %>%
+  pull(ori)
+
+# Apply the filter to the main panel
+final_ipv_panel <- final_ipv_panel %>%
+  filter(ori %in% agencies_to_keep)
+
+# Filter for Sundays between September and January
+final_ipv_panel <- final_ipv_panel %>%
+  filter(
+    month(incident_date) %in% c(9, 10, 11, 12, 1) &
+      wday(incident_date, label = TRUE) == "Sun"
+  )
+
+
+# Join NFL data to the IPV panel by state and date
+# ------------------------------------------------------------------------------
+nfl_to_join <- nfl_panel %>%
+  mutate(game_date = as.Date(game_date)) %>%
+  select(
+    state_abb, game_date, game_id, season, playoffs, team, opponent, start_time,
+    loss, win, predicted_win, predicted_close, predicted_loss, point_spread,
+    home_penalties, away_penalties, home_penalties_diff, home_pyards, away_pyards, home_pyards_diff,
+    turnovers, sacks_allowed, total_yards, point_diff_halftime, point_diff_final,
+    starts_with("diff_")
+  ) %>%
+  rename(incident_date = game_date)
+
+ipv_with_nfl <- final_ipv_panel %>%
+  left_join(nfl_to_join, by = c("state_abb", "incident_date"))
+
+vars_to_replace_na <- c(
+  "playoffs", "loss", "win", "predicted_win", "predicted_close", "predicted_loss",
+  "home_penalties", "away_penalties", "home_penalties_diff", 
+  "home_pyards", "away_pyards", "home_pyards_diff",
+  "turnovers", "sacks_allowed", "total_yards", 
+  "point_diff_halftime", "point_diff_final",
+  "diff_false_start", "diff_offensive_holding", "diff_defensive_pass_interference",
+  "diff_defensive_offside", "diff_unnecessary_roughness",
+  "diff_delay_of_game", "diff_illegal_block_above_the_waist", "diff_roughing_the_passer",
+  "diff_face_mask"
+)
+
+# Replace NAs in the specified columns with 0.
+ipv_with_nfl <- ipv_with_nfl %>%
+  mutate(across(all_of(vars_to_replace_na), ~replace_na(., 0)))
+
+# Add time (season/day of week) and penalty variables
+ipv_with_nfl <- ipv_with_nfl %>%
+  mutate(
+    # Create time controls
+    nfl_season = if_else(month(incident_date) < 9, year(incident_date) - 1, year(incident_date)),
+    
+    # Create split penalty differential variables for the overall count
+    penalty_disadvantage = if_else(home_penalties_diff > 0, home_penalties_diff, 0),
+    penalty_advantage = if_else(home_penalties_diff < 0, abs(home_penalties_diff), 0),
+    pen_dis_dummy = if_else(home_penalties_diff > 0, 1, 0),
+    pen_ad_dummy = if_else(home_penalties_diff < 0, 1, 0),
+    pyard_disadvantage = if_else(home_pyards_diff > 0, home_pyards_diff, 0),
+    pyard_advantage = if_else(home_pyards_diff < 0, abs(home_pyards_diff), 0),
+    
+    # Create disadvantage count for each of the top 10 penalties
+    dis_false_start = if_else(diff_false_start > 0, diff_false_start, 0),
+    dis_offensive_holding = if_else(diff_offensive_holding > 0, diff_offensive_holding, 0),
+    dis_defensive_pass_interference = if_else(diff_defensive_pass_interference > 0, diff_defensive_pass_interference, 0),
+    dis_defensive_offside = if_else(diff_defensive_offside > 0, diff_defensive_offside, 0),
+    dis_unnecessary_roughness = if_else(diff_unnecessary_roughness > 0, diff_unnecessary_roughness, 0),
+    dis_delay_of_game = if_else(diff_delay_of_game > 0, diff_delay_of_game, 0),
+    dis_illegal_block_above_the_waist = if_else(diff_illegal_block_above_the_waist > 0, diff_illegal_block_above_the_waist, 0),
+    dis_roughing_the_passer = if_else(diff_roughing_the_passer > 0, diff_roughing_the_passer, 0),
+    dis_face_mask = if_else(diff_face_mask > 0, diff_face_mask, 0)
+  ) %>%
+  group_by(nfl_season) %>%
+  mutate(season_start_date = min(incident_date)) %>%
+  ungroup() %>%
+  mutate(
+    week_of_season = floor(as.numeric(difftime(incident_date, season_start_date, units = "days")) / 7) + 1
+  ) %>%
+  select(-season_start_date)
+
+# Final cleaning of variable names
+ipv_with_nfl <- ipv_with_nfl %>%
+  rename(date = incident_date) %>%
+  select(-game_id, -season)
+
+# Merge in weather data 
+weather_clean <- readRDS("C:/Users/atsiu/Dropbox/Projects/nfl_flags_and_ipv/data/processed/weather_data_2005_2019.rds")
+
+ipv_with_nfl <- ipv_with_nfl %>%
+  left_join(weather_clean, by = c("state_abb", "date"))
+
+# Clean up environment and save
+rm(agency_day_panel, final_ipv_panel, ipv_counts, teams_per_state, nfl_to_join, vars_to_replace_na, 
+   single_team_states, agencies_to_keep, holiday_dates_in_sample, weather_clean)
+
+saveRDS(ipv_with_nfl, file = "data/processed/ipv_with_nfl_2005_2019.rds")
+
+

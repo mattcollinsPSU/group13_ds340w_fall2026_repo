@@ -1,0 +1,223 @@
+
+# Script Information
+# ------------------------------------------------------------------------------
+# This script file was written by Alex Tsiukes on 6/26/2025
+# This script is to combine individual NIBRS segments from https://doi.org/10.7910/DVN/TODXCL into a single, detailed IPV incidents file from 1999-2023
+# Email the author at: tsiukesa@winthrop.edu
+
+
+# Load Libraries
+# ------------------------------------------------------------------------------
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(tidyr)
+
+
+# Load and prepare agency reference data BEFORE the loop
+# ------------------------------------------------------------------------------
+nibrs_batch_header <- readRDS("data/raw/nibrs_batch_header_1991_2023.rds")
+
+# Create a clean agency info file for joining inside the loop
+agency_info <- nibrs_batch_header %>%
+  mutate(
+    # Convert months reported to numeric to allow for filtering
+    number_of_months_reported = as.numeric(number_of_months_reported),
+  ) %>%
+  # Keep only agency-years with at least 12 months of data
+  filter(number_of_months_reported >= 12) %>%
+  # Select all needed agency-level variables
+  select(ori, year, population, city_name, agency_indicator, core_city)
+
+# Clean up to save memory
+rm(nibrs_batch_header)
+
+
+# Setup for the loopy loop
+# ------------------------------------------------------------------------------
+# Define the range of years to process
+years_to_process <- 2010
+
+# Create an empty list to store the detailed data from each year
+yearly_detailed_list <- list()
+
+
+# Main Processing Loop
+# ------------------------------------------------------------------------------
+for (year in years_to_process) {
+  
+  print(paste("Processing NIBRS data for year:", year))
+  
+  # Load Raw Data for the Current Year
+  # ----------------------------------------------------------------------------
+  path_admin    <- paste0("data/raw/nibrs_admin_segment/nibrs_administrative_segment_", year, ".rds")
+  path_offense  <- paste0("data/raw/nibrs_offense_segment/nibrs_offense_segment_", year, ".rds")
+  path_victim   <- paste0("data/raw/nibrs_victim_segment/nibrs_victim_segment_", year, ".rds")
+  path_offender <- paste0("data/raw/nibrs_offender_segment/nibrs_offender_segment_", year, ".rds")
+  
+  admin    <- readRDS(path_admin)
+  offense  <- readRDS(path_offense)
+  victim   <- readRDS(path_victim)
+  offender <- readRDS(path_offender)
+  
+  # Define IPV Criteria
+  # ----------------------------------------------------------------------------
+  ipv_relationships <- c("victim was spouse", "victim was common-law spouse",
+                         "victim was boyfriend/girlfriend", "victim was ex-spouse",
+                         "victim was in a homosexual relationship with the offender")
+  
+  ipv_offenses <- c("assault offenses - aggravated assault", "assault offenses - intimidation", 
+                    "assault offenses - simple assault")
+  
+  # Create a link between victims and their specific offenders
+  # ----------------------------------------------------------------------------
+  victim_offender_link <-
+    victim %>%
+    mutate(
+      across(starts_with("offender_number_to_be_related"), as.numeric)
+    ) %>%
+    select(
+      unique_incident_id, victim_sequence_number, sex_of_victim, age_of_victim,
+      starts_with("offender_number_to_be_related"),
+      starts_with("relation_of_vict_to_offender")
+    ) %>%
+    pivot_longer(
+      cols = starts_with("offender_number_to_be_related"),
+      names_to = "link_num_off",
+      names_prefix = "offender_number_to_be_related",
+      values_to = "offender_seq_num_linked"
+    ) %>%
+    pivot_longer(
+      cols = starts_with("relation_of_vict_to_offender"),
+      names_to = "link_num_rel",
+      names_prefix = "relation_of_vict_to_offender",
+      values_to = "relation_of_vict_to_offender"
+    ) %>%
+    filter(link_num_off == link_num_rel) %>%
+    filter(!is.na(offender_seq_num_linked)) %>%
+    select(-link_num_off, -link_num_rel) %>%
+    
+    # This join now correctly matches a numeric column to a numeric column.
+    left_join(
+      offender %>%
+        select(unique_incident_id, offender_sequence_number, age_of_offender, sex_of_offender) %>%
+        mutate(offender_sequence_number = as.numeric(offender_sequence_number)),
+      by = c("unique_incident_id", "offender_seq_num_linked" = "offender_sequence_number")
+    )
+  
+  # Create the Detailed Incident File for the Year
+  # ----------------------------------------------------------------------------
+  ipv_incidents_detailed_year <-
+    admin %>%
+    left_join(agency_info, by = c("ori", "year")) %>%
+    filter(agency_indicator %in% c("city", "county")) %>%
+    left_join(offense %>% select(unique_incident_id, ucr_offense_code, location_type, starts_with("offender_suspected_of_using")), by = "unique_incident_id", relationship = "many-to-many") %>%
+    left_join(victim_offender_link, by = "unique_incident_id", relationship = "many-to-many") %>%
+    filter(
+      ucr_offense_code %in% ipv_offenses,
+      relation_of_vict_to_offender %in% ipv_relationships
+    ) %>%
+    mutate(
+      offender_suspected_of_using_alcohol = if_else(
+        if_any(starts_with("offender_suspected_of_using"), ~ .x == "alcohol"), 1, 0, missing = 0
+      ),
+      offender_suspected_of_using_drugs = if_else(
+        if_any(starts_with("offender_suspected_of_using"), ~ str_detect(.x, "drugs or narcotics")), 1, 0, missing = 0
+      )
+    ) %>%
+    # Select the final set of columns
+    select(
+      unique_incident_id, victim_sequence_number,
+      ori, year, state, state_abb, incident_date, incident_date_hour,
+      # Agency Info
+      population, city_name, 
+      agency_indicator, core_city,
+      # Offender Info
+      age_of_offender, sex_of_offender,
+      # Offense Info
+      ucr_offense_code, offender_suspected_of_using_alcohol, offender_suspected_of_using_drugs,
+      location_type,
+      # Victim Info
+      age_of_victim, sex_of_victim, relation_of_vict_to_offender
+    )
+  
+  # Add the detailed data for the current year to our list
+  # ----------------------------------------------------------------------------
+  yearly_detailed_list[[as.character(year)]] <- ipv_incidents_detailed_year
+  
+  # Clear memory before the next iteration
+  rm(admin, offense, victim, offender, victim_offender_link, ipv_incidents_detailed_year)
+  gc()
+}
+
+
+# Combine all years and remove agency-level duplicates
+# ------------------------------------------------------------------------------
+# Combine the list of yearly detailed dataframes into one final master dataframe
+master_ipv_incidents <- bind_rows(yearly_detailed_list)
+
+# Deduplicate the data based on the unique victimizations, prioritizing by severity
+master_ipv_incidents <- master_ipv_incidents %>%
+  # Create a numeric severity ranking for the offenses
+  mutate(
+    offense_severity = case_when(
+      ucr_offense_code == "assault offenses - aggravated assault" ~ 3,
+      ucr_offense_code == "assault offenses - simple assault"     ~ 2, 
+      ucr_offense_code == "assault offenses - intimidation"       ~ 1, 
+      TRUE                                                      ~ 0
+    )
+  ) %>%
+  # Arrange data so the most severe offense appears first
+  arrange(unique_incident_id, victim_sequence_number, desc(offense_severity)) %>%
+  
+  # Keep only the first row for each victim-incident pair
+  distinct(unique_incident_id, victim_sequence_number, .keep_all = TRUE)
+
+
+# Filter out agencies with long reporting gaps
+# ------------------------------------------------------------------------------
+# Identify agencies where the maximum gap between any two consecutive reported IPV incidents is greater than one year.
+agencies_with_gaps <- master_ipv_incidents %>%
+  # Arrange by agency and date to calculate gaps correctly
+  arrange(ori, incident_date) %>%
+  group_by(ori) %>%
+  # Calculate the difference in days from the previous incident
+  mutate(gap_days = as.numeric(ymd(incident_date) - lag(ymd(incident_date)))) %>%
+  # Find the maximum gap for each agency
+  summarise(max_gap = max(gap_days, na.rm = TRUE)) %>%
+  # Filter for agencies where that max gap is over a year
+  filter(max_gap > 365) %>%
+  pull(ori)
+
+# Remove these agencies from the master dataframe
+master_ipv_incidents <- master_ipv_incidents %>%
+  filter(!ori %in% agencies_with_gaps)
+
+
+# Apply final data quality filters
+# ------------------------------------------------------------------------------
+# Filter out observations with a recorded population of zero
+master_ipv_incidents <- master_ipv_incidents %>%
+  filter(population > 50)
+
+# Filter out observations where the incident hour is missing
+master_ipv_incidents <- master_ipv_incidents %>%
+  filter(!is.na(incident_date_hour))
+
+# Keep only agencies with at least 4 years of data
+oris_with_4_plus_years <- master_ipv_incidents %>%
+  group_by(ori) %>%
+  summarise(n_years = n_distinct(year)) %>%
+  filter(n_years >= 4) %>%
+  pull(ori)
+
+master_ipv_incidents <- master_ipv_incidents %>%
+  filter(ori %in% oris_with_4_plus_years)
+
+
+# Clean environment and Save
+# ------------------------------------------------------------------------------
+rm(yearly_detailed_list, ipv_offenses, ipv_relationships, path_admin, path_offender, path_offense, path_victim, year, years_to_process, agency_info, agencies_with_gaps, oris_with_4_plus_years)
+
+# Save the final, deduplicated master file
+saveRDS(master_ipv_incidents, file = "data/processed/master_ipv_incidents_1999_2023.rds")

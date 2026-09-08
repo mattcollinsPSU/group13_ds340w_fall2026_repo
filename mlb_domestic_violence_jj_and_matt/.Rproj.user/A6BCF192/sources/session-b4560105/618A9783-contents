@@ -1,0 +1,25 @@
+\begin{table}
+\centering
+\caption{Inaccuracy Bins}
+\centering
+\begin{tabular}[t]{lc}
+\toprule
+  & Binned Poisson\\
+\midrule
+inaccuracy\_bin25\% & \num{0.018}\\
+ & (\num{0.023})\\
+inaccuracy\_bin50\% & \num{0.032}\\
+ & (\num{0.029})\\
+inaccuracy\_bin75\% & \num{0.042}\\
+ & \vphantom{1} (\num{0.031})\\
+inaccuracy\_bin95\% & \num{0.018}\\
+ & (\num{0.021})\\
+inaccuracy\_binAbove 95\% & \num{0.064}**\\
+ & (\num{0.031})\\
+\midrule
+N & \num{6282}\\
+AIC & \num{25699}\\
+\bottomrule
+\multicolumn{2}{l}{\rule{0pt}{1em}* p $<$ 0.1, ** p $<$ 0.05, *** p $<$ 0.01}\\
+\end{tabular}
+\end{table}
